@@ -30,6 +30,8 @@ bool cut;
 
 //Servo: digital pin 3, 3.3V pin
 Servo myServo;
+int startingAngle = 65;
+int openAngle = 0;
 
 // WiFi ssid and password
 char ssid[] = ""; // if using an iOS hotspot, turn on "Maximize Compatibility"
@@ -42,10 +44,10 @@ BLYNK_WRITE(V0) {
   Serial.println("Received from Blynk Terminal: " + receivedString); 
 
   if (receivedString.equals("!Acc")) {
-    myServo.write(75);                                             //turn servo
+    myServo.write(openAngle);                                             //turn servo
     Blynk.virtualWrite(V0, "Release message sent to cutter!");
   } else if (receivedString.equals("!Aco")) {
-    myServo.write(0);                                             //turn servo
+    myServo.write(startingAngle);                                             //turn servo
     Blynk.virtualWrite(V0, "Retract message sent to cutter!");
   } else {
     Blynk.virtualWrite(V0, "Other message sent to cutter!");
@@ -57,7 +59,7 @@ void setup() {
   Serial.println("Test"); 
 
   myServo.attach(3);                          
-  myServo.write(0);                           // starting servo position
+  myServo.write(startingAngle);                           // starting servo position
 
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);  // blynk terminal setup, further code will not run until connection is made
 
@@ -84,7 +86,7 @@ void loop() {
 
   if (seconds() > 5400 && cut == false) {  // cutdown after 90min
     for (int i = 0; i < 5; i++) {
-      myServo.write(90); 
+      myServo.write(openAngle); 
       delay(3000);
       delay(3000);
     }
@@ -187,11 +189,11 @@ void loop() {
         Serial.print("Messages sent to cutter!");
 
         // servo control, change the write calls to properly cutdown
-        myServo.write(180); 
+        myServo.write(startingAngle); 
         if ((String(mes)).equals("!AccoQ")) {
-          myServo.write(75);                                             
+          myServo.write(openAngle);                                             
         } else if ((String(mes)).equals("!AcooQ")) {
-          myServo.write(0);
+          myServo.write(startingAngle);
         }
         
         Blynk.virtualWrite(V0, "Messages sent to cutter!");
