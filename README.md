@@ -1,6 +1,6 @@
 # Spring 2026 Arduino Cutdown
 
-The software runs on a Arduino UNO R4 and Rockblock 9603
+This software runs on a Arduino UNO R4 WiFi and Rockblock 9603
 
 # Libraries
  - Servo
