@@ -24,9 +24,7 @@ Note: The device not execute any code until connected to Blynk, but once connect
 - Can manually cutdown with !Acc and !Aco commands either from Blynk (for testing) or RockBLOCK
   - website to enter this information: https://rockblock.rock7.com/Operations
 
-# Rockblock 9603 informatio
-
-# n
+# Rockblock 9603 information
 
 We are using the Rockblock 9603 model. The model comes with an external antenna object that is screwed onto the rockblock itself.
 
