@@ -24,11 +24,13 @@ Note: The device not execute any code until connected to Blynk, but once connect
 - Can manually cutdown with !Acc and !Aco commands either from Blynk (for testing) or RockBLOCK
   - website to enter this information: https://rockblock.rock7.com/Operations
 
-# Rockblock 9603 information
+# Rockblock 9603 informatio
 
-We are using the Rockblock 9603 model. The model comes with an external antenna object that is screwed onto the rockblock itself. 
+# n
 
-PINOUT, arduino to rockblock 
+We are using the Rockblock 9603 model. The model comes with an external antenna object that is screwed onto the rockblock itself.
+
+PINOUT, arduino to rockblock
 
 1. RX -> RXD
 2. TX -> TXD
@@ -36,3 +38,9 @@ PINOUT, arduino to rockblock
 4. GND -> GND
 
 ##### Overview of code used to interface with the rockblock:
+
+#TBD
+
+##### Overview on rockblock website for sending commands: 
+
+#TBD, add pictures
