@@ -14,6 +14,7 @@
 #define seconds() (millis() / 1000)
 
 // Rockblock variables 
+// the pins are 0-RX to RXD, 1-TX to TXD, 5V to Vcc, GND to GND
 #define IridiumSerial Serial1 // The arduino mega has multiple uart ports (tx/rx1-3), the uno r4 only has Serial1
 IridiumSBD iridium(IridiumSerial);
 
@@ -25,10 +26,9 @@ int buzzerPin = 11;
 
 int sq; // Signal quality
 static bool messageSent = false;
-
 bool cut;
 
-//Servo
+//Servo: digital pin 3, 3.3V pin
 Servo myServo;
 
 // WiFi ssid and password
