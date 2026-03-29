@@ -28,7 +28,7 @@ int sq; // Signal quality
 static bool messageSent = false;
 bool cut;
 
-//Servo: digital pin 3, 3.3V pin
+//Servo: digital pin 3 (pwm), 3.3V pin
 Servo myServo;
 int startingAngle = 65;
 int openAngle = 0;
@@ -83,12 +83,12 @@ void setup() {
 void loop() {
   
   Blynk.run();
+  Serial.println("Blynk has run");
 
   if (seconds() > 5400 && cut == false) {  // cutdown after 90min
     for (int i = 0; i < 5; i++) {
       myServo.write(openAngle); 
-      delay(3000);
-      delay(3000);
+      delay(6000);
     }
     cut = true;
   }
@@ -190,9 +190,9 @@ void loop() {
 
         // servo control, change the write calls to properly cutdown
         myServo.write(startingAngle); 
-        if ((String(mes)).equals("!AccoQ")) {
+        if ((String(mes)).startsWith("!Acc")) { // consider (strncmp(mes, "!Acc", 4) == 0)
           myServo.write(openAngle);                                             
-        } else if ((String(mes)).equals("!AcooQ")) {
+        } else if ((String(mes)).startsWith("!Aco")) { // strncmp(mes, "!Aco", 4) == 0
           myServo.write(startingAngle);
         }
         
