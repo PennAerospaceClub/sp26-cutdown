@@ -13,25 +13,22 @@
 #define DIAGNOSTICS false  // Change to true to see diagnostics
 #define seconds() (millis() / 1000)
 
+//Servo: digital pin 3 (pwm), 3.3V pin
+Servo myServo;
+const int SERVO_PIN = 3;
+const int ANGLE_START = 0;
+const int ANGLE_OPEN = 63;
+
 // Rockblock variables 
 // the pins are 0-RX to RXD, 1-TX to TXD, 5V to Vcc, GND to GND
 #define IridiumSerial Serial1 // The arduino mega has multiple uart ports (tx/rx1-3), the uno r4 only has Serial1
 IridiumSBD iridium(IridiumSerial);
-
 uint8_t buffer[200] = { 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89 };
 uint8_t bufferSend[270];
 size_t bufferSizeSend = 0;
-
-int buzzerPin = 11;
-
 int sq; // Signal quality
 static bool messageSent = false;
 bool cut;
-
-//Servo: digital pin 3 (pwm), 3.3V pin
-Servo myServo;
-int startingAngle = 65;
-int openAngle = 0;
 
 // WiFi ssid and password
 char ssid[] = ""; // if using an iOS hotspot, turn on "Maximize Compatibility"
@@ -44,10 +41,10 @@ BLYNK_WRITE(V0) {
   Serial.println("Received from Blynk Terminal: " + receivedString); 
 
   if (receivedString.equals("!Acc")) {
-    myServo.write(openAngle);                                             //turn servo
+    myServo.write(ANGLE_OPEN);                                             //turn servo
     Blynk.virtualWrite(V0, "Release message sent to cutter!");
   } else if (receivedString.equals("!Aco")) {
-    myServo.write(startingAngle);                                             //turn servo
+    myServo.write(ANGLE_START);                                             //turn servo
     Blynk.virtualWrite(V0, "Retract message sent to cutter!");
   } else {
     Blynk.virtualWrite(V0, "Other message sent to cutter!");
@@ -59,12 +56,11 @@ void setup() {
   Serial.println("Test"); 
 
   myServo.attach(3);                          
-  myServo.write(startingAngle);                           // starting servo position
+  myServo.write(ANGLE_START);                           // starting servo position
 
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);  // blynk terminal setup, further code will not run until connection is made
 
   // Rockblock setup
-  pinMode(buzzerPin, OUTPUT);
   while (!Serial);
   IridiumSerial.begin(19200);
 
@@ -73,9 +69,10 @@ void setup() {
   Blynk.virtualWrite(V0, "Hello! Checking signal quality...");
   iridium.setPowerProfile(IridiumSBD::USB_POWER_PROFILE);
   if (iridium.begin() != ISBD_SUCCESS) {
-    Serial.println("Couldn't begin modem operations.");
-    Blynk.virtualWrite(V0, "Couldn't begin modem operations.");
-    exit(0);
+    Serial.println("Couldn't begin modem operations");
+    Blynk.virtualWrite(V0, "Couldn't begin modem operations");
+  } else {
+    Serial.println("RockBLOCK initialized")
   }
   cut = false;
 }
@@ -87,7 +84,7 @@ void loop() {
 
   if (seconds() > 5400 && cut == false) {  // cutdown after 90min
     for (int i = 0; i < 5; i++) {
-      myServo.write(openAngle); 
+      myServo.write(ANGLE_OPEN); 
       delay(6000);
     }
     cut = true;
@@ -103,7 +100,6 @@ void loop() {
     Blynk.virtualWrite(V0, "SignalQuality failed: error ");
     Serial.println(errS);
     Blynk.virtualWrite(V0, errS);
-    exit(1);
   }
   Serial.print("Signal quality is ");
   Blynk.virtualWrite(V0, "Signal quality is ");
@@ -111,21 +107,11 @@ void loop() {
   Blynk.virtualWrite(V0, signalQuality);
   sq = signalQuality;
 
-  // more beeps signify better signal quality
-  int pitches[] = { 440, 667, 880, 1333, 1011, 880 };
-  for (int j = 0; j < 3; j++) {
-    for (int i = 0; i < sq + 1; i++) {
-      beep(pitches[i], 500);
-      delay(100);
-    }
-  }
-
   if (sq > 0) {
     delay(1000);
     int err;
     Serial.println("Waiting for messages...");
     Blynk.virtualWrite(V0, "Waiting for messages...");
-    beep(581, 2000);
     // Read/Write the first time or if there are any remaining messages
     if (!messageSent || iridium.getWaitingMessageCount() > 0) {
       size_t bufferSize = sizeof(buffer);
@@ -139,12 +125,6 @@ void loop() {
 
       if (err != ISBD_SUCCESS) {
         Serial.print("sendReceiveSBD* failed: error ");
-        beep(506, 250);
-        beep(440, 250);
-        beep(383, 250);
-        beep(506, 250);
-        beep(440, 250);
-        beep(383, 250);
 
         Serial.print("Timeout after 30 seconds...Probably due to bad signal quality. Error code: ");
         Blynk.virtualWrite(V0, "Timeout after 30 seconds...Probably due to bad signal quality. Error code: ");
@@ -180,20 +160,19 @@ void loop() {
         Serial.println(mes);
         Blynk.virtualWrite(V0, mes);
         
-        beep(300, 500);
-        beep(400, 500);
-        beep(500, 500);
-        beep(600, 500);
-        beep(800, 500);
         Serial.println();
         Serial.print("Messages sent to cutter!");
 
-        // servo control, change the write calls to properly cutdown
-        myServo.write(startingAngle); 
-        if ((String(mes)).startsWith("!Acc")) { // consider (strncmp(mes, "!Acc", 4) == 0)
-          myServo.write(openAngle);                                             
-        } else if ((String(mes)).startsWith("!Aco")) { // strncmp(mes, "!Aco", 4) == 0
-          myServo.write(startingAngle);
+        // servo control
+        myServo.write(ANGLE_START); 
+        if (strncmp(mes, "!Acc", 4) == 0) {
+          Serial.println("!Acc");
+          myServo.write(ANGLE_OPEN);          
+        } else if (strncmp(mes, "!Aco", 4) == 0) {
+          Serial.println("!Aco");
+          myServo.write(ANGLE_START);
+        } else {
+          Serial.println("Unknown command");
         }
         
         Blynk.virtualWrite(V0, "Messages sent to cutter!");
@@ -205,13 +184,6 @@ void loop() {
       }
     }
   }
-}
-
-// Generate a beep with a specific frequency and duration
-void beep(int frequency, int duration) {
-  tone(buzzerPin, frequency);
-  delay(duration);
-  noTone(buzzerPin);
 }
 
 #if DIAGNOSTICS
