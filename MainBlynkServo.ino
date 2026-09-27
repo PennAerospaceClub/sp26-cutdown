@@ -1,9 +1,10 @@
 // this code works with blynk with the uno r4, can read what is being printed on serial monitor 
 
-// Paste in your Blynk information from the website dashboard
+// Public Blynk device identifiers, private credentials (Blynk auth and hotspot login) go in secrets.h.
 #define BLYNK_TEMPLATE_ID "TMPL2tSBE42IL"
 #define BLYNK_TEMPLATE_NAME "Rockblock Terminal"
-#define BLYNK_AUTH_TOKEN "Y6jcLMKWOxE5FCyg30M7h6l0XzSPwfuR"
+
+#include "secrets.h" // hotspot login
 
 #include <Servo.h>
 #include <IridiumSBD.h>
@@ -13,7 +14,7 @@
 #define DIAGNOSTICS false  // Change to true to see diagnostics
 #define seconds() (millis() / 1000)
 
-//Servo: digital pin 3 (pwm), 3.3V pin
+// Servo: digital pin 3 (pwm), 3.3V pin
 Servo myServo;
 const int SERVO_PIN = 3;
 const int ANGLE_START = 0;
@@ -30,10 +31,6 @@ int sq; // Signal quality
 static bool messageSent = false;
 bool cut;
 
-// WiFi ssid and password
-char ssid[] = ""; // if using an iOS hotspot, turn on "Maximize Compatibility"
-char pass[] = "";
-
 // Writing from the blynk to Arduino, for testing the cutter
 BLYNK_WRITE(V0) {
   String receivedString = param.asString();
@@ -41,10 +38,10 @@ BLYNK_WRITE(V0) {
   Serial.println("Received from Blynk Terminal: " + receivedString); 
 
   if (receivedString.equals("!Acc")) {
-    myServo.write(ANGLE_OPEN);                                             //turn servo
+    myServo.write(ANGLE_OPEN);  //turn servo
     Blynk.virtualWrite(V0, "Release message sent to cutter!");
   } else if (receivedString.equals("!Aco")) {
-    myServo.write(ANGLE_START);                                             //turn servo
+    myServo.write(ANGLE_START);  //turn servo
     Blynk.virtualWrite(V0, "Retract message sent to cutter!");
   } else {
     Blynk.virtualWrite(V0, "Other message sent to cutter!");
@@ -52,11 +49,11 @@ BLYNK_WRITE(V0) {
 }
 
 void setup() {
-  Serial.begin(115200);                       // Computer serial
+  Serial.begin(115200);  // Computer serial
   Serial.println("Test"); 
 
   myServo.attach(3);                          
-  myServo.write(ANGLE_START);                           // starting servo position
+  myServo.write(ANGLE_START);  // starting servo position
 
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);  // blynk terminal setup, further code will not run until connection is made
 
@@ -82,7 +79,7 @@ void loop() {
   Blynk.run();
   Serial.println("Blynk has run");
 
-  if (seconds() > 5400 && cut == false) {  // cutdown after 90min
+  if (seconds() > 5400 && cut == false) {  // automatic cutdown after 90min
     for (int i = 0; i < 5; i++) {
       myServo.write(ANGLE_OPEN); 
       delay(6000);
@@ -142,17 +139,18 @@ void loop() {
         Blynk.virtualWrite(V0, "Inbound buffer size is ");
         Serial.println(bufferSize);
         Blynk.virtualWrite(V0, bufferSize);
+
         char mes[strlen((const char*)buffer) + 1];
         for (int i = 0; i < bufferSize; ++i) {
           Serial.print(buffer[i], HEX);
           if (isprint(buffer[i])) {
-
             Serial.print("(");
             Serial.write(buffer[i]);
             Serial.print(")");
           }
           mes[i] = buffer[i];
         }
+        
         mes[strlen((const char*)buffer)] = '\0';
         Serial.println();
         Serial.print("The full message received is: ");
