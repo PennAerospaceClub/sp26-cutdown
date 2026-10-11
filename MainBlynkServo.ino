@@ -11,7 +11,6 @@
 #include <WiFiS3.h>
 #include <BlynkSimpleWifi.h>
 
-#define DIAGNOSTICS false  // Change to true to see diagnostics
 #define seconds() (millis() / 1000)
 
 // Servo: digital pin 3 (pwm), 3.3V pin
@@ -25,9 +24,6 @@ const int ANGLE_OPEN = 63;
 #define IridiumSerial Serial1 // The arduino mega has multiple uart ports (tx/rx1-3), the uno r4 only has Serial1
 IridiumSBD iridium(IridiumSerial);
 uint8_t buffer[200] = { 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89 };
-uint8_t bufferSend[270];
-size_t bufferSizeSend = 0;
-int sq; // Signal quality
 static bool messageSent = false;
 bool cut;
 
@@ -87,8 +83,6 @@ void loop() {
     cut = true;
   }
 
-  bufferSizeSend = sizeof(bufferSend);
-
   int signalQuality = -1;
   // Check the signal quality (ranging from 1 to 5), return it if connection is made
   int errS = iridium.getSignalQuality(signalQuality);
@@ -102,9 +96,8 @@ void loop() {
   Blynk.virtualWrite(V0, "Signal quality is ");
   Serial.println(signalQuality);
   Blynk.virtualWrite(V0, signalQuality);
-  sq = signalQuality;
 
-  if (sq > 0) {
+  if (signalQuality > 0) {
     delay(1000);
     int err;
     Serial.println("Waiting for messages...");
@@ -183,13 +176,3 @@ void loop() {
     }
   }
 }
-
-#if DIAGNOSTICS
-void ISBDConsoleCallback(IridiumSBD* device, char c) {
-  Serial.write(c);
-}
-
-void ISBDDiagsCallback(IridiumSBD* device, char c) {
-  Serial.write(c);
-}
-#endif

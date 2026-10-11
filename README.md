@@ -1,6 +1,6 @@
-# Spring 2026 Arduino Cutdown
+# Spring 2026/Fall 2026 Arduino Cutdown
 
-This software runs on a Arduino UNO R4 WiFi and Rockblock 9603
+This software runs on a Arduino UNO R4 WiFi connected to a Rockblock 9603 satellite module
 
 # Libraries
 
@@ -12,23 +12,23 @@ This software runs on a Arduino UNO R4 WiFi and Rockblock 9603
 # Setup
 
 1. Create Blynk device with terminal (virtual pin input)
-2. Put ID and auth token into the define fields.
-3. Put WiFi/hotspot ssid and password into the variables
+2. Put Blynk ID and name into the define fields.
+3. Put Blynk auth token, WiFi SSID, and WiFi password into a file called "secrets.h" (see the example file for reference).
 
 Note: The device not execute any code until connected to Blynk, but once connected will run even after being disconnected
 
 # Cutdown
 
-- Cutdown just repeatedly actuates the servo to release payload
+- The current cutdown mechanism repeatedly actuates the servo to release payload
 - Cutdown automatically occurs after 90 minutes if not already activated
-- Can manually cutdown with !Acc and !Aco commands either from Blynk (for testing) or RockBLOCK
-  - website to enter this information: https://rockblock.rock7.com/Operations
+- Users can also manually start the cutdown with !Acc and !Aco commands either from Blynk (during testing) or remotely with RockBLOCK
+  - website to send cutdown commands: https://rockblock.rock7.com/Operations
 
 # Rockblock 9603 information
 
-We are using the Rockblock 9603 model. The model comes with an external antenna object that is screwed onto the rockblock itself.
+We are using the RockBLOCK 9603 model. The model comes with an external antenna that is screwed onto the RockBLOCK itself.
 
-PINOUT, arduino to rockblock
+PINOUT, Arduino to RockBLOCK
 
 1. RX -> RXD
 2. TX -> TXD
