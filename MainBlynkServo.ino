@@ -19,6 +19,9 @@ const int SERVO_PIN = 3;
 const int ANGLE_START = 0;
 const int ANGLE_OPEN = 63;
 
+const unsigned long BLYNK_RETRY_MS = 60000; // if Blynk isn't connected, retry this often
+unsigned long lastBlynkAttempt = 0;
+
 // Rockblock variables 
 // the pins are 0-RX to RXD, 1-TX to TXD, 5V to Vcc, GND to GND
 #define IridiumSerial Serial1 // The arduino mega has multiple uart ports (tx/rx1-3), the uno r4 only has Serial1
@@ -26,6 +29,29 @@ IridiumSBD iridium(IridiumSerial);
 uint8_t buffer[200] = { 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89 };
 static bool messageSent = false;
 bool cut;
+
+// Blynk.begin() without its infinite retry loop: join WiFi, then the Blynk server, each giving up after timeoutMs
+void connectBlynk(unsigned long timeoutMs) {
+  lastBlynkAttempt = millis();
+  WiFi.setTimeout(timeoutMs);
+  if (WiFi.status() != WL_CONNECTED && WiFi.begin(ssid, pass) != WL_CONNECTED) {
+    Serial.println("WiFi not connected");
+  } else if (Blynk.connect(timeoutMs)) {
+    Serial.println("Blynk connected");
+    Blynk.virtualWrite(V0, "Blynk connected");
+  } else {
+    Serial.println("Blynk server not connected");
+  }
+}
+
+// Run Blynk while connected, otherwise retry every BLYNK_RETRY_MS
+void serviceBlynk() {
+  if (Blynk.connected()) {
+    Blynk.run();
+  } else if (millis() - lastBlynkAttempt >= BLYNK_RETRY_MS) {
+    connectBlynk(5000); // short, so RockBLOCK checks aren't held up
+  }
+}
 
 // Writing from the blynk to Arduino, for testing the cutter
 BLYNK_WRITE(V0) {
@@ -45,16 +71,17 @@ BLYNK_WRITE(V0) {
 }
 
 void setup() {
-  Serial.begin(115200);  // Computer serial
+  Serial.begin(115200);
+  while (!Serial && millis() < 3000);
   Serial.println("Test"); 
 
   myServo.attach(3);                          
   myServo.write(ANGLE_START);  // starting servo position
 
-  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);  // blynk terminal setup, further code will not run until connection is made
+  Blynk.config(BLYNK_AUTH_TOKEN);
+  connectBlynk(20000); // replaces Blynk.begin(), which never returns without a connection
 
   // Rockblock setup
-  while (!Serial);
   IridiumSerial.begin(19200);
 
   // Setup the Iridium modem
@@ -72,8 +99,7 @@ void setup() {
 
 void loop() {
   
-  Blynk.run();
-  Serial.println("Blynk has run");
+  serviceBlynk();
 
   if (seconds() > 5400 && cut == false) {  // automatic cutdown after 90min
     for (int i = 0; i < 5; i++) {

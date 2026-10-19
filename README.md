@@ -15,7 +15,7 @@ This software runs on a Arduino UNO R4 WiFi connected to a Rockblock 9603 satell
 2. Put Blynk ID and name into the define fields.
 3. Put Blynk auth token, WiFi SSID, and WiFi password into a file called "secrets.h" (see the example file for reference).
 
-Note: The device not execute any code until connected to Blynk, but once connected will run even after being disconnected
+Note: Blynk is optional. If the device does not connect to Blynk at startup, the device will continue without Blynk retries every connection every 60 seconds with short timeouts to avoid hanging the Rockblock checks.
 
 # Cutdown
 
